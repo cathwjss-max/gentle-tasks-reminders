@@ -1,12 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { CheckCircle2, CalendarHeart, CalendarDays, Leaf } from "lucide-react";
+import { CheckCircle2, CalendarDays, Leaf } from "lucide-react";
 import type { ReactNode } from "react";
 
 const nav = [
-  { to: "/", label: "Today", icon: CheckCircle2 },
+  { to: "/", label: "Tasks", icon: CheckCircle2 },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
-  { to: "/reminders", label: "Dates", icon: CalendarHeart },
-  { to: "/margin", label: "Margin", icon: Leaf },
+  { to: "/space", label: "Space", icon: Leaf },
 ] as const;
 
 function Wordmark() {
@@ -59,7 +58,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 backdrop-blur sm:hidden">
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-3">
           {nav.map((item) => {
             const active = pathname === item.to;
             return (

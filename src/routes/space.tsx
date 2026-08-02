@@ -2,23 +2,23 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { useTasks } from "@/lib/store";
 
-export const Route = createFileRoute("/margin")({
+export const Route = createFileRoute("/space")({
   head: () => ({
     meta: [
-      { title: "The Margin method — why less is more productive" },
+      { title: "Your Space — the Margin method & your quiet stats" },
       {
         name: "description",
         content:
           "Three science-backed habits behind Margin: one focus task, closing the loop, and leaving white space in your day.",
       },
-      { property: "og:title", content: "The Margin method — why less is more productive" },
+      { property: "og:title", content: "Your Space — the Margin method" },
       {
         property: "og:description",
         content: "One focus task, closing open loops, and leaving white space in your day.",
       },
     ],
   }),
-  component: MarginPage,
+  component: SpacePage,
 });
 
 const principles = [
@@ -42,7 +42,7 @@ const principles = [
   },
 ];
 
-function MarginPage() {
+function SpacePage() {
   const { tasks } = useTasks();
   const done = tasks.filter((t) => t.done).length;
 
@@ -50,7 +50,7 @@ function MarginPage() {
     <AppShell>
       <header className="mb-10 max-w-md">
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-          The method
+          Your space
         </p>
         <h1 className="mt-2 text-3xl font-medium leading-tight tracking-[-0.03em]">
           A clutter-free mind needs a clutter-free page.
