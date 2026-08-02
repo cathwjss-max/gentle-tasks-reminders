@@ -6,6 +6,7 @@ export type Task = {
   done: boolean;
   focus: boolean;
   due?: string;
+  tag?: string;
   createdAt: number;
 };
 
@@ -72,7 +73,7 @@ function useLocal<T>(key: string, fallback: T) {
 export function useTasks() {
   const [tasks, setTasks, ready] = useLocal<Task[]>(KEYS.tasks, seedTasks);
 
-  const addTask = (title: string, due?: string) =>
+  const addTask = (title: string, due?: string, tag?: string) =>
     setTasks((prev) => {
       const task: Task = {
         id: crypto.randomUUID(),
@@ -81,6 +82,7 @@ export function useTasks() {
         focus: false,
         createdAt: Date.now(),
         ...(due ? { due } : {}),
+        ...(tag ? { tag } : {}),
       };
       return [task, ...prev];
     });
@@ -117,4 +119,19 @@ export function nextOccurrence(dateStr: string) {
 
 export function formatDay(date: Date) {
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
+export function greeting(date = new Date()) {
+  const h = date.getHours();
+  if (h < 5) return "Still up";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  if (h < 22) return "Good evening";
+  return "Good night";
+}
+
+export function toKey(date: Date) {
+  const m = `${date.getMonth() + 1}`.padStart(2, "0");
+  const d = `${date.getDate()}`.padStart(2, "0");
+  return `${date.getFullYear()}-${m}-${d}`;
 }

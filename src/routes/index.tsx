@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Plus, Star, X } from "lucide-react";
+import { CalendarDays, Plus, Star, Tag, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { useTasks, useReminders, nextOccurrence, formatDay } from "@/lib/store";
+import { useTasks, useReminders, nextOccurrence, formatDay, greeting } from "@/lib/store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,6 +27,9 @@ function Today() {
   const { tasks, addTask, toggleTask, toggleFocus, removeTask, clearDone } = useTasks();
   const { reminders } = useReminders();
   const [draft, setDraft] = useState("");
+  const [due, setDue] = useState("");
+  const [tag, setTag] = useState("");
+  const [details, setDetails] = useState(false);
 
   const open = tasks.filter((t) => !t.done);
   const done = tasks.filter((t) => t.done);
@@ -43,6 +46,7 @@ function Today() {
   );
 
   const today = new Date();
+  const hello = greeting(today);
 
   return (
     <AppShell>
@@ -50,10 +54,13 @@ function Today() {
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
           {today.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
         </p>
-        <h1 className="mt-3 text-3xl font-medium tracking-[-0.03em] sm:text-4xl">
-          {open.length === 0 ? "Nothing left. Rest." : `${open.length} things, no more.`}
-        </h1>
-        {focus.length > 0 && (
+        <h1 className="mt-3 text-3xl font-medium tracking-[-0.03em] sm:text-4xl">{hello}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {open.length === 0
+            ? "All done — you cleared everything. Enjoy the empty space."
+            : `${open.length} ${open.length === 1 ? "task" : "tasks"} remaining`}
+        </p>
+        {open.length > 0 && focus.length > 0 && (
           <p className="mt-2 text-sm text-muted-foreground">
             One thing first — <span className="text-foreground">{focus[0]?.title}</span>
           </p>
@@ -65,19 +72,55 @@ function Today() {
           e.preventDefault();
           const value = draft.trim();
           if (!value) return;
-          addTask(value);
+          addTask(value, due || undefined, tag.trim() || undefined);
           setDraft("");
+          setDue("");
+          setTag("");
+          setDetails(false);
         }}
-        className="mb-8 flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3"
+        className="mb-8 rounded-2xl border border-border bg-card px-4 py-3"
       >
-        <Plus className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />
-        <input
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder="Add one task"
-          aria-label="Add one task"
-          className="min-w-0 flex-1 bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-        />
+        <div className="flex items-center gap-3">
+          <Plus className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Add one task"
+            aria-label="Add one task"
+            className="min-w-0 flex-1 bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={() => setDetails((v) => !v)}
+            aria-label="Add tag or date"
+            className={`rounded-md p-1.5 transition-colors ${
+              details || due || tag ? "text-foreground" : "text-muted-foreground"
+            }`}
+          >
+            <Tag className="size-4" strokeWidth={1.5} />
+          </button>
+        </div>
+        {details && (
+          <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-border pt-3">
+            <input
+              value={tag}
+              onChange={(e) => setTag(e.target.value)}
+              placeholder="tag (optional)"
+              aria-label="Tag"
+              className="min-w-0 bg-transparent font-mono text-sm placeholder:text-muted-foreground focus:outline-none"
+            />
+            <div className="flex shrink-0 items-center gap-2 text-muted-foreground">
+              <CalendarDays className="size-4" strokeWidth={1.5} />
+              <input
+                type="date"
+                value={due}
+                onChange={(e) => setDue(e.target.value)}
+                aria-label="Due date"
+                className="bg-transparent font-mono text-sm focus:outline-none"
+              />
+            </div>
+          </div>
+        )}
       </form>
 
       <ul className="space-y-1">
@@ -93,11 +136,15 @@ function Today() {
             />
             <button onClick={() => toggleFocus(t.id)} className="min-w-0 text-left">
               <span className="block truncate text-[15px]">{t.title}</span>
-              {t.focus && (
-                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                  focus
-                </span>
-              )}
+              <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                {t.focus && <span>focus</span>}
+                {t.tag && <span className="normal-case tracking-normal">#{t.tag}</span>}
+                {t.due && (
+                  <span className="normal-case tracking-normal">
+                    {formatDay(new Date(t.due))}
+                  </span>
+                )}
+              </span>
             </button>
             <div className="flex shrink-0 items-center gap-1">
               <button
