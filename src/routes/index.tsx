@@ -55,7 +55,7 @@ function Today() {
         </h1>
         {focus.length > 0 && (
           <p className="mt-2 text-sm text-muted-foreground">
-            One thing first — <span className="text-foreground">{focus[0].title}</span>
+            One thing first — <span className="text-foreground">{focus[0]?.title}</span>
           </p>
         )}
       </header>

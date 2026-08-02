@@ -73,10 +73,17 @@ export function useTasks() {
   const [tasks, setTasks, ready] = useLocal<Task[]>(KEYS.tasks, seedTasks);
 
   const addTask = (title: string, due?: string) =>
-    setTasks((prev) => [
-      { id: crypto.randomUUID(), title, done: false, focus: false, due, createdAt: Date.now() },
-      ...prev,
-    ]);
+    setTasks((prev) => {
+      const task: Task = {
+        id: crypto.randomUUID(),
+        title,
+        done: false,
+        focus: false,
+        createdAt: Date.now(),
+        ...(due ? { due } : {}),
+      };
+      return [task, ...prev];
+    });
   const toggleTask = (id: string) =>
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
   const toggleFocus = (id: string) =>
