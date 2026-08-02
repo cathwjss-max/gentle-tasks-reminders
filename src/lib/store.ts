@@ -75,7 +75,7 @@ function useLocal<T>(key: string, fallback: T) {
 export function useTasks() {
   const [tasks, setTasks, ready] = useLocal<Task[]>(KEYS.tasks, seedTasks);
 
-  const addTask = (title: string, extra: Partial<Pick<Task, "due" | "tag" | "time" | "note">> = {}) =>
+  const addTask = (title: string, extra: { due?: string | undefined; tag?: string | undefined; time?: string | undefined; note?: string | undefined } = {}) =>
     setTasks((prev) => {
       const task: Task = {
         id: crypto.randomUUID(),

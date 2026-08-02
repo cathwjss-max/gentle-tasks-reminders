@@ -8,7 +8,7 @@ export function MiniCalendar({
   value,
   onSelect,
 }: {
-  value?: string;
+  value?: string | undefined;
   onSelect: (key: string | undefined) => void;
 }) {
   const today = new Date();
