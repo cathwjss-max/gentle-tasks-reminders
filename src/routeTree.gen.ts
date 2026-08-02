@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CalendarRouteImport } from './routes/calendar'
-import { Route as MarginRouteImport } from './routes/margin'
+import { Route as SpaceRouteImport } from './routes/space'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,40 +23,40 @@ const CalendarRoute = CalendarRouteImport.update({
   path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MarginRoute = MarginRouteImport.update({
-  id: '/margin',
-  path: '/margin',
+const SpaceRoute = SpaceRouteImport.update({
+  id: '/space',
+  path: '/space',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRoute
-  '/margin': typeof MarginRoute
+  '/space': typeof SpaceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRoute
-  '/margin': typeof MarginRoute
+  '/space': typeof SpaceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRoute
-  '/margin': typeof MarginRoute
+  '/space': typeof SpaceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/calendar' | '/margin'
+  fullPaths: '/' | '/calendar' | '/space'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/calendar' | '/margin'
-  id: '__root__' | '/' | '/calendar' | '/margin'
+  to: '/' | '/calendar' | '/space'
+  id: '__root__' | '/' | '/calendar' | '/space'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CalendarRoute: typeof CalendarRoute
-  MarginRoute: typeof MarginRoute
+  SpaceRoute: typeof SpaceRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,11 +75,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/margin': {
-      id: '/margin'
-      path: '/margin'
-      fullPath: '/margin'
-      preLoaderRoute: typeof MarginRouteImport
+    '/space': {
+      id: '/space'
+      path: '/space'
+      fullPath: '/space'
+      preLoaderRoute: typeof SpaceRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -88,7 +88,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CalendarRoute: CalendarRoute,
-  MarginRoute: MarginRoute,
+  SpaceRoute: SpaceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
