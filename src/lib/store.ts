@@ -7,6 +7,8 @@ export type Task = {
   focus: boolean;
   due?: string;
   tag?: string;
+  time?: string;
+  note?: string;
   createdAt: number;
 };
 
@@ -73,7 +75,7 @@ function useLocal<T>(key: string, fallback: T) {
 export function useTasks() {
   const [tasks, setTasks, ready] = useLocal<Task[]>(KEYS.tasks, seedTasks);
 
-  const addTask = (title: string, due?: string, tag?: string) =>
+  const addTask = (title: string, extra: Partial<Pick<Task, "due" | "tag" | "time" | "note">> = {}) =>
     setTasks((prev) => {
       const task: Task = {
         id: crypto.randomUUID(),
@@ -81,8 +83,10 @@ export function useTasks() {
         done: false,
         focus: false,
         createdAt: Date.now(),
-        ...(due ? { due } : {}),
-        ...(tag ? { tag } : {}),
+        ...(extra.due ? { due: extra.due } : {}),
+        ...(extra.tag ? { tag: extra.tag } : {}),
+        ...(extra.time ? { time: extra.time } : {}),
+        ...(extra.note ? { note: extra.note } : {}),
       };
       return [task, ...prev];
     });
@@ -123,15 +127,27 @@ export function formatDay(date: Date) {
 
 export function greeting(date = new Date()) {
   const h = date.getHours();
-  if (h < 5) return "Still up";
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  if (h < 22) return "Good evening";
-  return "Good night";
+  if (h < 5) return "Still Up";
+  if (h < 12) return "Good Morning";
+  if (h < 17) return "Good Afternoon";
+  if (h < 22) return "Good Evening";
+  return "Good Night";
 }
 
 export function toKey(date: Date) {
   const m = `${date.getMonth() + 1}`.padStart(2, "0");
   const d = `${date.getDate()}`.padStart(2, "0");
   return `${date.getFullYear()}-${m}-${d}`;
+}
+
+export const TAGS = [
+  { name: "work", color: "bg-mist" },
+  { name: "home", color: "bg-sage" },
+  { name: "people", color: "bg-blush" },
+  { name: "body", color: "bg-sand" },
+  { name: "mind", color: "bg-clay" },
+] as const;
+
+export function tagColor(name?: string) {
+  return TAGS.find((t) => t.name === name)?.color ?? "bg-secondary";
 }
