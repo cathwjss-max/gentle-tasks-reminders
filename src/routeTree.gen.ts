@@ -11,8 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CalendarRouteImport } from './routes/calendar'
-import { Route as MarginRouteImport } from './routes/margin'
-import { Route as RemindersRouteImport } from './routes/reminders'
+import { Route as SpaceRouteImport } from './routes/space'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,49 +23,40 @@ const CalendarRoute = CalendarRouteImport.update({
   path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MarginRoute = MarginRouteImport.update({
-  id: '/margin',
-  path: '/margin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RemindersRoute = RemindersRouteImport.update({
-  id: '/reminders',
-  path: '/reminders',
+const SpaceRoute = SpaceRouteImport.update({
+  id: '/space',
+  path: '/space',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRoute
-  '/margin': typeof MarginRoute
-  '/reminders': typeof RemindersRoute
+  '/space': typeof SpaceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRoute
-  '/margin': typeof MarginRoute
-  '/reminders': typeof RemindersRoute
+  '/space': typeof SpaceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/calendar': typeof CalendarRoute
-  '/margin': typeof MarginRoute
-  '/reminders': typeof RemindersRoute
+  '/space': typeof SpaceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/calendar' | '/margin' | '/reminders'
+  fullPaths: '/' | '/calendar' | '/space'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/calendar' | '/margin' | '/reminders'
-  id: '__root__' | '/' | '/calendar' | '/margin' | '/reminders'
+  to: '/' | '/calendar' | '/space'
+  id: '__root__' | '/' | '/calendar' | '/space'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CalendarRoute: typeof CalendarRoute
-  MarginRoute: typeof MarginRoute
-  RemindersRoute: typeof RemindersRoute
+  SpaceRoute: typeof SpaceRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -85,18 +75,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/margin': {
-      id: '/margin'
-      path: '/margin'
-      fullPath: '/margin'
-      preLoaderRoute: typeof MarginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reminders': {
-      id: '/reminders'
-      path: '/reminders'
-      fullPath: '/reminders'
-      preLoaderRoute: typeof RemindersRouteImport
+    '/space': {
+      id: '/space'
+      path: '/space'
+      fullPath: '/space'
+      preLoaderRoute: typeof SpaceRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -105,8 +88,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CalendarRoute: CalendarRoute,
-  MarginRoute: MarginRoute,
-  RemindersRoute: RemindersRoute,
+  SpaceRoute: SpaceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

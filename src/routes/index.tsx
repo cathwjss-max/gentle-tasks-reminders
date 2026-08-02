@@ -1,8 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { CalendarDays, Plus, Star, Tag, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { CalendarDays, Clock, Hash, Plus, SlidersHorizontal, Star, StickyNote, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { useTasks, useReminders, nextOccurrence, formatDay, greeting } from "@/lib/store";
+import { MiniCalendar } from "@/components/MiniCalendar";
+import {
+  useTasks,
+  useReminders,
+  nextOccurrence,
+  formatDay,
+  greeting,
+  TAGS,
+  tagColor,
+} from "@/lib/store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -23,17 +32,26 @@ export const Route = createFileRoute("/")({
   component: Today,
 });
 
+type Panel = "tag" | "date" | "time" | "note" | null;
+
 function Today() {
   const { tasks, addTask, toggleTask, toggleFocus, removeTask, clearDone } = useTasks();
   const { reminders } = useReminders();
   const [draft, setDraft] = useState("");
-  const [due, setDue] = useState("");
-  const [tag, setTag] = useState("");
-  const [details, setDetails] = useState(false);
+  const [due, setDue] = useState<string | undefined>();
+  const [tag, setTag] = useState<string | undefined>();
+  const [time, setTime] = useState("");
+  const [note, setNote] = useState("");
+  const [options, setOptions] = useState(false);
+  const [panel, setPanel] = useState<Panel>(null);
+
+  const [hello, setHello] = useState("Hello");
+  useEffect(() => setHello(greeting()), []);
 
   const open = tasks.filter((t) => !t.done);
   const done = tasks.filter((t) => t.done);
-  const focus = open.filter((t) => t.focus);
+  const progress = tasks.length === 0 ? 0 : Math.round((done.length / tasks.length) * 100);
+  const complete = tasks.length > 0 && open.length === 0;
 
   const soon = useMemo(
     () =>
@@ -46,7 +64,22 @@ function Today() {
   );
 
   const today = new Date();
-  const hello = greeting(today);
+  const reset = () => {
+    setDraft("");
+    setDue(undefined);
+    setTag(undefined);
+    setTime("");
+    setNote("");
+    setOptions(false);
+    setPanel(null);
+  };
+
+  const pill = (active: boolean) =>
+    `flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-mono text-[11px] transition-all duration-200 ${
+      active
+        ? "border-transparent bg-secondary text-foreground"
+        : "border-border text-muted-foreground hover:bg-secondary/60"
+    }`;
 
   return (
     <AppShell>
@@ -56,15 +89,24 @@ function Today() {
         </p>
         <h1 className="mt-3 text-3xl font-medium tracking-[-0.03em] sm:text-4xl">{hello}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {open.length === 0
-            ? "All done — you cleared everything. Enjoy the empty space."
-            : `${open.length} ${open.length === 1 ? "task" : "tasks"} remaining`}
+          {tasks.length === 0
+            ? "A blank page. Add one thing."
+            : complete
+              ? "Everything closed. Enjoy the empty space."
+              : `${open.length} ${open.length === 1 ? "task" : "tasks"} remaining`}
         </p>
-        {open.length > 0 && focus.length > 0 && (
-          <p className="mt-2 text-sm text-muted-foreground">
-            One thing first — <span className="text-foreground">{focus[0]?.title}</span>
-          </p>
-        )}
+
+        <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+          <div
+            className="h-full rounded-full transition-[width,background-color] duration-700 ease-in-out"
+            style={{
+              width: `${progress}%`,
+              backgroundColor: complete
+                ? "var(--sage)"
+                : `color-mix(in oklab, var(--sage) ${progress}%, var(--clay))`,
+            }}
+          />
+        </div>
       </header>
 
       <form
@@ -72,11 +114,8 @@ function Today() {
           e.preventDefault();
           const value = draft.trim();
           if (!value) return;
-          addTask(value, due || undefined, tag.trim() || undefined);
-          setDraft("");
-          setDue("");
-          setTag("");
-          setDetails(false);
+          addTask(value, { due, tag, time: time || undefined, note: note.trim() || undefined });
+          reset();
         }}
         className="mb-8 rounded-2xl border border-border bg-card px-4 py-3"
       >
@@ -91,34 +130,110 @@ function Today() {
           />
           <button
             type="button"
-            onClick={() => setDetails((v) => !v)}
-            aria-label="Add tag or date"
-            className={`rounded-md p-1.5 transition-colors ${
-              details || due || tag ? "text-foreground" : "text-muted-foreground"
+            onClick={() => {
+              setOptions((v) => !v);
+              setPanel(null);
+            }}
+            aria-label="More options"
+            className={`rounded-full p-1.5 transition-colors ${
+              options ? "bg-secondary text-foreground" : "text-muted-foreground"
             }`}
           >
-            <Tag className="size-4" strokeWidth={1.5} />
+            <SlidersHorizontal className="size-4" strokeWidth={1.5} />
           </button>
         </div>
-        {details && (
-          <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-border pt-3">
-            <input
-              value={tag}
-              onChange={(e) => setTag(e.target.value)}
-              placeholder="tag (optional)"
-              aria-label="Tag"
-              className="min-w-0 bg-transparent font-mono text-sm placeholder:text-muted-foreground focus:outline-none"
-            />
-            <div className="flex shrink-0 items-center gap-2 text-muted-foreground">
-              <CalendarDays className="size-4" strokeWidth={1.5} />
-              <input
-                type="date"
-                value={due}
-                onChange={(e) => setDue(e.target.value)}
-                aria-label="Due date"
-                className="bg-transparent font-mono text-sm focus:outline-none"
-              />
+
+        {options && (
+          <div className="mt-3 border-t border-border pt-3">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setPanel(panel === "tag" ? null : "tag")}
+                className={pill(!!tag || panel === "tag")}
+              >
+                {tag ? (
+                  <span className={`size-2 rounded-full ${tagColor(tag)}`} />
+                ) : (
+                  <Hash className="size-3.5" strokeWidth={1.5} />
+                )}
+                {tag ?? "Tag"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPanel(panel === "date" ? null : "date")}
+                className={pill(!!due || panel === "date")}
+              >
+                <CalendarDays className="size-3.5" strokeWidth={1.5} />
+                {due ? formatDay(new Date(due)) : "Date"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPanel(panel === "time" ? null : "time")}
+                className={pill(!!time || panel === "time")}
+              >
+                <Clock className="size-3.5" strokeWidth={1.5} />
+                {time || "Time"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPanel(panel === "note" ? null : "note")}
+                className={pill(!!note || panel === "note")}
+              >
+                <StickyNote className="size-3.5" strokeWidth={1.5} />
+                Note
+              </button>
             </div>
+
+            {panel === "tag" && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {TAGS.map((t) => (
+                  <button
+                    key={t.name}
+                    type="button"
+                    onClick={() => setTag(tag === t.name ? undefined : t.name)}
+                    className={`flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[11px] transition-all duration-200 ${
+                      tag === t.name
+                        ? `${t.color} text-foreground`
+                        : "bg-secondary/60 text-muted-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    <span className={`size-2 rounded-full ${t.color}`} />
+                    {t.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {panel === "date" && (
+              <div className="mt-3">
+                <MiniCalendar value={due} onSelect={setDue} />
+              </div>
+            )}
+
+            {panel === "time" && (
+              <div className="mt-3 rounded-2xl bg-secondary/60 px-4 py-3">
+                <input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  aria-label="Time"
+                  className="w-full bg-transparent font-mono text-sm focus:outline-none"
+                />
+              </div>
+            )}
+
+            {panel === "note" && (
+              <div className="mt-3 rounded-2xl bg-secondary/60 px-4 py-3">
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows={2}
+                  placeholder="a short note"
+                  aria-label="Note"
+                  className="w-full resize-none bg-transparent font-mono text-sm placeholder:text-muted-foreground focus:outline-none"
+                />
+              </div>
+            )}
           </div>
         )}
       </form>
@@ -136,14 +251,19 @@ function Today() {
             />
             <button onClick={() => toggleFocus(t.id)} className="min-w-0 text-left">
               <span className="block truncate text-[15px]">{t.title}</span>
-              <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+              <span className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
                 {t.focus && <span>focus</span>}
-                {t.tag && <span className="normal-case tracking-normal">#{t.tag}</span>}
-                {t.due && (
-                  <span className="normal-case tracking-normal">
-                    {formatDay(new Date(t.due))}
+                {t.tag && (
+                  <span className="flex items-center gap-1 normal-case tracking-normal">
+                    <span className={`size-1.5 rounded-full ${tagColor(t.tag)}`} />
+                    {t.tag}
                   </span>
                 )}
+                {t.due && (
+                  <span className="normal-case tracking-normal">{formatDay(new Date(t.due))}</span>
+                )}
+                {t.time && <span className="normal-case tracking-normal">{t.time}</span>}
+                {t.note && <span className="normal-case tracking-normal">note</span>}
               </span>
             </button>
             <div className="flex shrink-0 items-center gap-1">
