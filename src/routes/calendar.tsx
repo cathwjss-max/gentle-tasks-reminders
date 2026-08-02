@@ -86,7 +86,7 @@ function CalendarPage() {
         </div>
       </header>
 
-      <div className="rounded-2xl border border-border bg-card p-3 sm:p-4">
+      <div className="rounded-3xl border border-border bg-card p-4 sm:p-5">
         <div className="grid grid-cols-7">
           {WEEKDAYS.map((d, i) => (
             <span
@@ -108,10 +108,10 @@ function CalendarPage() {
               <button
                 key={key}
                 onClick={() => setSelected(key)}
-                className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-xl text-[13px] transition-colors ${
+                className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-full text-[13px] transition-all duration-300 ease-out ${
                   isSelected
-                    ? "bg-secondary text-foreground"
-                    : "text-muted-foreground hover:bg-secondary/60"
+                    ? "bg-clay text-foreground shadow-[0_6px_16px_-10px_var(--clay)]"
+                    : "text-muted-foreground hover:bg-secondary/70"
                 }`}
               >
                 <span
