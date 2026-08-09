@@ -259,6 +259,15 @@ export function Composer({
               />
             </div>
           )}
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              className="rounded-full bg-foreground px-4 py-1.5 text-[12px] text-background transition-opacity hover:opacity-90"
+            >
+              Add {kind === "task" ? "task" : kind}
+            </button>
+          </div>
         </div>
       )}
     </form>
