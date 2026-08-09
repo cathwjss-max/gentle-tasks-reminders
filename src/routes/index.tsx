@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Clock, Hash, Plus, SlidersHorizontal, Star, StickyNote, X } from "lucide-react";
+import { Star, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { MiniCalendar } from "@/components/MiniCalendar";
+import { Composer } from "@/components/Composer";
+import { PageHeader } from "@/components/PageHeader";
 import {
   useTasks,
   useReminders,
@@ -32,19 +33,10 @@ export const Route = createFileRoute("/")({
   component: Today,
 });
 
-type Panel = "tag" | "date" | "time" | "note" | null;
-
 function Today() {
-  const { tasks, addTask, toggleTask, toggleFocus, removeTask, clearDone } = useTasks();
+  const { tasks, toggleTask, toggleFocus, removeTask, clearDone } = useTasks();
   const { reminders } = useReminders();
   const { tags: tagList } = useTags();
-  const [draft, setDraft] = useState("");
-  const [due, setDue] = useState<string | undefined>();
-  const [tag, setTag] = useState<string | undefined>();
-  const [time, setTime] = useState("");
-  const [note, setNote] = useState("");
-  const [options, setOptions] = useState(false);
-  const [panel, setPanel] = useState<Panel>(null);
 
   const [hello, setHello] = useState("Hello");
   useEffect(() => setHello(greeting()), []);
@@ -65,30 +57,17 @@ function Today() {
   );
 
   const today = new Date();
-  const reset = () => {
-    setDraft("");
-    setDue(undefined);
-    setTag(undefined);
-    setTime("");
-    setNote("");
-    setOptions(false);
-    setPanel(null);
-  };
-
-  const pill = (active: boolean) =>
-    `flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-mono text-[11px] transition-all duration-200 ${
-      active
-        ? "border-transparent bg-secondary text-foreground"
-        : "border-border text-muted-foreground hover:bg-secondary/60"
-    }`;
 
   return (
     <AppShell>
-      <header className="mb-10">
-        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-          {today.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
-        </p>
-        <h1 className="mt-3 text-3xl font-medium tracking-[-0.03em] sm:text-4xl">{hello}</h1>
+      <PageHeader
+        label={today.toLocaleDateString("en-GB", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+        })}
+        title={hello}
+      >
         <p className="mt-2 text-sm text-muted-foreground">
           {tasks.length === 0
             ? "A blank page. Add one thing."
@@ -108,144 +87,11 @@ function Today() {
             }}
           />
         </div>
-      </header>
+      </PageHeader>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const value = draft.trim();
-          if (!value) return;
-          addTask(value, { due, tag, time: time || undefined, note: note.trim() || undefined });
-          reset();
-        }}
-        className="mb-8 rounded-2xl border border-border bg-card px-4 py-3"
-      >
-        <div className="flex items-center gap-3">
-          <Plus className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />
-          <input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="Add one task"
-            aria-label="Add one task"
-            className="min-w-0 flex-1 bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-          />
-          <button
-            type="button"
-            onClick={() => {
-              setOptions((v) => !v);
-              setPanel(null);
-            }}
-            aria-label="More options"
-            className={`rounded-full p-1.5 transition-colors ${
-              options ? "bg-secondary text-foreground" : "text-muted-foreground"
-            }`}
-          >
-            <SlidersHorizontal className="size-4" strokeWidth={1.5} />
-          </button>
-        </div>
-
-        {options && (
-          <div className="mt-3 border-t border-border pt-3">
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setPanel(panel === "tag" ? null : "tag")}
-                className={pill(!!tag || panel === "tag")}
-              >
-                {tag ? (
-                  <span
-                    className="size-2 rounded-full"
-                    style={{ backgroundColor: tagColorOf(tagList, tag) }}
-                  />
-                ) : (
-                  <Hash className="size-3.5" strokeWidth={1.5} />
-                )}
-                {tag ?? "Tag"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setPanel(panel === "date" ? null : "date")}
-                className={pill(!!due || panel === "date")}
-              >
-                <CalendarDays className="size-3.5" strokeWidth={1.5} />
-                {due ? formatDay(new Date(due)) : "Date"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setPanel(panel === "time" ? null : "time")}
-                className={pill(!!time || panel === "time")}
-              >
-                <Clock className="size-3.5" strokeWidth={1.5} />
-                {time || "Time"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setPanel(panel === "note" ? null : "note")}
-                className={pill(!!note || panel === "note")}
-              >
-                <StickyNote className="size-3.5" strokeWidth={1.5} />
-                Note
-              </button>
-            </div>
-
-            {panel === "tag" && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {tagList.length === 0 && (
-                  <p className="font-mono text-[11px] text-muted-foreground">
-                    No tags yet — add some in settings.
-                  </p>
-                )}
-                {tagList.map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => setTag(tag === t.name ? undefined : t.name)}
-                    className={`flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[11px] transition-all duration-200 ${
-                      tag === t.name
-                        ? "bg-secondary text-foreground"
-                        : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
-                    }`}
-                  >
-                    <span className="size-2 rounded-full" style={{ backgroundColor: t.color }} />
-                    {t.name}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {panel === "date" && (
-              <div className="mt-3">
-                <MiniCalendar value={due} onSelect={setDue} />
-              </div>
-            )}
-
-            {panel === "time" && (
-              <div className="mt-3 rounded-2xl bg-secondary/60 px-4 py-3">
-                <input
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  aria-label="Time"
-                  className="w-full bg-transparent font-mono text-sm focus:outline-none"
-                />
-              </div>
-            )}
-
-            {panel === "note" && (
-              <div className="mt-3 rounded-2xl bg-secondary/60 px-4 py-3">
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  rows={2}
-                  placeholder="a short note"
-                  aria-label="Note"
-                  className="w-full resize-none bg-transparent font-mono text-sm placeholder:text-muted-foreground focus:outline-none"
-                />
-              </div>
-            )}
-          </div>
-        )}
-      </form>
+      <div className="mb-8">
+        <Composer />
+      </div>
 
       <ul className="space-y-1">
         {open.map((t) => (
