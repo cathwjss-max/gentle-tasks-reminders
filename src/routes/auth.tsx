@@ -94,7 +94,7 @@ function AuthPage() {
                 setSent(false);
                 setMode("in");
               }}
-              className="mt-8 w-full font-mono text-[12px] text-muted-foreground underline-offset-4 hover:underline"
+              className="mt-8 w-full text-[13px] text-muted-foreground underline-offset-4 hover:underline"
             >
               Back to sign in
             </button>
@@ -117,7 +117,7 @@ function AuthPage() {
               onChange={(e) => setName(e.target.value)}
               placeholder="Name"
               aria-label="Name"
-              className="w-full rounded-2xl border border-border bg-card px-4 py-3 font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             />
           )}
           <input
@@ -127,7 +127,7 @@ function AuthPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
             aria-label="Email"
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3 font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           />
           <input
             type="password"
@@ -137,13 +137,13 @@ function AuthPage() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             aria-label="Password"
-            className="w-full rounded-2xl border border-border bg-card px-4 py-3 font-mono text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           />
-          {error && <p className="font-mono text-[12px] text-destructive">{error}</p>}
+          {error && <p className="text-[13px] text-destructive">{error}</p>}
           <button
             type="submit"
             disabled={busy}
-            className="w-full rounded-2xl bg-primary px-4 py-3 font-mono text-sm text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="w-full rounded-2xl bg-primary px-4 py-3 text-sm text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
           >
             {mode === "in" ? "Sign in" : "Create account"}
           </button>
@@ -151,7 +151,7 @@ function AuthPage() {
 
         <button
           onClick={google}
-          className="mt-3 w-full rounded-2xl border border-border bg-card px-4 py-3 font-mono text-sm transition-colors hover:bg-secondary"
+          className="mt-3 w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm transition-colors hover:bg-secondary"
         >
           Continue with Google
         </button>
@@ -161,7 +161,7 @@ function AuthPage() {
             setMode(mode === "in" ? "up" : "in");
             setError("");
           }}
-          className="mt-6 w-full font-mono text-[12px] text-muted-foreground underline-offset-4 hover:underline"
+          className="mt-6 w-full text-[13px] text-muted-foreground underline-offset-4 hover:underline"
         >
           {mode === "in" ? "No account yet? Create one" : "Already have an account? Sign in"}
         </button>

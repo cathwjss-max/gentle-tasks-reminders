@@ -1,0 +1,1 @@
+DELETE FROM public.reminders WHERE title = 'Test Person';

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+import { PageHeader } from "@/components/PageHeader";
 import { useTasks } from "@/lib/store";
 
 export const Route = createFileRoute("/space")({
@@ -48,18 +49,12 @@ function SpacePage() {
 
   return (
     <AppShell>
-      <header className="mb-10 max-w-md">
-        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-          Your space
-        </p>
-        <h1 className="mt-2 text-3xl font-medium leading-tight tracking-[-0.03em]">
-          A clutter-free mind needs a clutter-free page.
-        </h1>
-        <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
+      <PageHeader label="Your space" title="A clutter-free mind needs a clutter-free page.">
+        <p className="mt-4 max-w-md text-[15px] leading-relaxed text-muted-foreground">
           Margin holds tasks, birthdays and events — and nothing else. Everything removed was
           removed on purpose.
         </p>
-      </header>
+      </PageHeader>
 
       <div className="grid gap-4 sm:grid-cols-3">
         {principles.map((p) => (
