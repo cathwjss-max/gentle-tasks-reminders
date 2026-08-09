@@ -50,9 +50,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         </aside>
 
         <main className="flex-1 px-6 pt-10 pb-28 sm:px-10 sm:pb-14">
-          <div className="mb-8 sm:hidden">
-            <Wordmark />
-          </div>
           {children}
         </main>
       </div>
