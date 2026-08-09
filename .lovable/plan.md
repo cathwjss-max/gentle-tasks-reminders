@@ -19,10 +19,11 @@ The settings gear is absolutely positioned on every page, so it sits on top of t
 
 ## 3. Typography
 
-DM Mono is currently used on body text, inputs, buttons and nav labels, which hurts readability.
+Replace DM Mono with Inconsolata everywhere, and pull the monospace back to a supporting role since it reads less easily than the sans.
 
-- Keep DM Mono only for small uppercase section labels, calendar date numbers, and countdowns.
-- Switch to DM Sans for the task input, notes, buttons, nav labels, settings fields, auth forms, tag chips, and all sentence-length text.
+- Swap the mono family to Inconsolata (loaded alongside DM Sans in the root head, mapped to the mono token).
+- DM Sans becomes the default for anything read or typed: calendar date numbers, the task input, notes, email/password and name fields, buttons, nav labels, settings fields, tag chips, and all sentence-length text.
+- Inconsolata is kept only for small uppercase supporting labels (section headers, weekday initials) and countdown numbers — quiet, secondary detail.
 
 ## 4. Add items from the Calendar
 
