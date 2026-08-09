@@ -72,7 +72,7 @@ export function MiniCalendar({
               onClick={() => onSelect(toKey(date) === value ? undefined : toKey(date))}
               className={`flex aspect-square items-center justify-center rounded-full font-mono text-[12px] transition-all duration-200 ${
                 toKey(date) === value
-                  ? "bg-clay text-foreground"
+                  ? "bg-foreground text-background"
                   : toKey(date) === toKey(today)
                     ? "text-foreground underline underline-offset-4 hover:bg-background"
                     : "text-muted-foreground hover:bg-background"

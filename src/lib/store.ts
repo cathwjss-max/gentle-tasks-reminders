@@ -1,14 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 
 export type Task = {
   id: string;
   title: string;
   done: boolean;
   focus: boolean;
-  due?: string;
-  tag?: string;
-  time?: string;
-  note?: string;
+  due?: string | null;
+  tag?: string | null;
+  time?: string | null;
+  note?: string | null;
   createdAt: number;
 };
 
@@ -17,97 +20,268 @@ export type Reminder = {
   title: string;
   kind: "birthday" | "event";
   date: string; // yyyy-mm-dd
-  note?: string;
+  note?: string | null;
 };
 
-const KEYS = { tasks: "margin.tasks", reminders: "margin.reminders" } as const;
+export type Tag = {
+  id: string;
+  name: string;
+  color: string;
+  position: number;
+};
 
-const seedTasks: Task[] = [
-  { id: "t1", title: "Write three lines of the proposal", done: false, focus: true, createdAt: 1 },
-  { id: "t2", title: "Walk without headphones", done: false, focus: false, createdAt: 2 },
-  { id: "t3", title: "Reply to Mira", done: true, focus: false, createdAt: 3 },
-];
+export const SWATCHES = [
+  { label: "clay", value: "oklch(0.76 0.045 45)" },
+  { label: "sage", value: "oklch(0.78 0.035 145)" },
+  { label: "mist", value: "oklch(0.79 0.03 240)" },
+  { label: "sand", value: "oklch(0.88 0.03 85)" },
+  { label: "blush", value: "oklch(0.82 0.04 20)" },
+  { label: "stone", value: "oklch(0.72 0.012 80)" },
+] as const;
 
-const seedReminders: Reminder[] = [
-  { id: "r1", title: "Mum", kind: "birthday", date: "1962-09-12", note: "Call in the morning" },
-  { id: "r2", title: "Dentist", kind: "event", date: "2026-08-19" },
-  { id: "r3", title: "Noor", kind: "birthday", date: "1994-12-03" },
-];
+export function useTags() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const key = ["tags", user?.id];
 
-function read<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
+  const { data, isFetched } = useQuery({
+    queryKey: key,
+    enabled: !!user,
+    queryFn: async (): Promise<Tag[]> => {
+      const { data, error } = await supabase
+        .from("tags")
+        .select("id,name,color,position")
+        .order("position", { ascending: true });
+      if (error) throw error;
+      return data as Tag[];
+    },
+  });
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: key });
+
+  const addTag = useMutation({
+    mutationFn: async (t: { name: string; color: string }) => {
+      const { error } = await supabase
+        .from("tags")
+        .insert({ user_id: user!.id, name: t.name, color: t.color, position: (data?.length ?? 0) });
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  const updateTag = useMutation({
+    mutationFn: async (t: { id: string; name?: string; color?: string }) => {
+      const patch: { name?: string; color?: string } = {};
+      if (t.name !== undefined) patch.name = t.name;
+      if (t.color !== undefined) patch.color = t.color;
+      const { error } = await supabase.from("tags").update(patch).eq("id", t.id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  const removeTag = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("tags").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  return {
+    tags: data ?? [],
+    ready: isFetched,
+    addTag: (name: string, color: string) => addTag.mutate({ name, color }),
+    updateTag: (id: string, patch: { name?: string; color?: string }) =>
+      updateTag.mutate({ id, ...patch }),
+    removeTag: (id: string) => removeTag.mutate(id),
+  };
 }
 
-function useLocal<T>(key: string, fallback: T) {
-  const [value, setValue] = useState<T>(fallback);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    setValue(read<T>(key, fallback));
-    setReady(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
-
-  const update = useCallback(
-    (next: T | ((prev: T) => T)) => {
-      setValue((prev) => {
-        const resolved = typeof next === "function" ? (next as (p: T) => T)(prev) : next;
-        try {
-          window.localStorage.setItem(key, JSON.stringify(resolved));
-        } catch {
-          /* ignore */
-        }
-        return resolved;
-      });
-    },
-    [key],
-  );
-
-  return [value, update, ready] as const;
+export function tagColorOf(tags: Tag[], name?: string | null) {
+  return tags.find((t) => t.name === name)?.color ?? "var(--muted-foreground)";
 }
 
 export function useTasks() {
-  const [tasks, setTasks, ready] = useLocal<Task[]>(KEYS.tasks, seedTasks);
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const key = ["tasks", user?.id];
 
-  const addTask = (title: string, extra: { due?: string | undefined; tag?: string | undefined; time?: string | undefined; note?: string | undefined } = {}) =>
-    setTasks((prev) => {
-      const task: Task = {
-        id: crypto.randomUUID(),
-        title,
-        done: false,
-        focus: false,
-        createdAt: Date.now(),
-        ...(extra.due ? { due: extra.due } : {}),
-        ...(extra.tag ? { tag: extra.tag } : {}),
-        ...(extra.time ? { time: extra.time } : {}),
-        ...(extra.note ? { note: extra.note } : {}),
-      };
-      return [task, ...prev];
-    });
-  const toggleTask = (id: string) =>
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
-  const toggleFocus = (id: string) =>
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, focus: !t.focus } : t)));
-  const removeTask = (id: string) => setTasks((prev) => prev.filter((t) => t.id !== id));
-  const clearDone = () => setTasks((prev) => prev.filter((t) => !t.done));
+  const { data, isFetched } = useQuery({
+    queryKey: key,
+    enabled: !!user,
+    queryFn: async (): Promise<Task[]> => {
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("id,title,done,focus,due,tag,time,note,created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map((r) => ({
+        id: r.id,
+        title: r.title,
+        done: r.done,
+        focus: r.focus,
+        due: r.due,
+        tag: r.tag,
+        time: r.time,
+        note: r.note,
+        createdAt: new Date(r.created_at).getTime(),
+      }));
+    },
+  });
 
-  return { tasks, ready, addTask, toggleTask, toggleFocus, removeTask, clearDone };
+  const invalidate = () => qc.invalidateQueries({ queryKey: key });
+
+  const add = useMutation({
+    mutationFn: async (payload: {
+      title: string;
+      due?: string | undefined;
+      tag?: string | undefined;
+      time?: string | undefined;
+      note?: string | undefined;
+    }) => {
+      const { error } = await supabase.from("tasks").insert({
+        user_id: user!.id,
+        title: payload.title,
+        due: payload.due ?? null,
+        tag: payload.tag ?? null,
+        time: payload.time ?? null,
+        note: payload.note ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  const patch = useMutation({
+    mutationFn: async (p: { id: string; values: { done?: boolean; focus?: boolean } }) => {
+      const { error } = await supabase.from("tasks").update(p.values).eq("id", p.id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("tasks").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  const clear = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("tasks").delete().eq("done", true);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  const tasks = data ?? [];
+
+  return {
+    tasks,
+    ready: isFetched,
+    addTask: (
+      title: string,
+      extra: {
+        due?: string | undefined;
+        tag?: string | undefined;
+        time?: string | undefined;
+        note?: string | undefined;
+      } = {},
+    ) => add.mutate({ title, ...extra }),
+    toggleTask: (id: string) => {
+      const t = tasks.find((x) => x.id === id);
+      patch.mutate({ id, values: { done: !t?.done } });
+    },
+    toggleFocus: (id: string) => {
+      const t = tasks.find((x) => x.id === id);
+      patch.mutate({ id, values: { focus: !t?.focus } });
+    },
+    removeTask: (id: string) => remove.mutate(id),
+    clearDone: () => clear.mutate(),
+  };
 }
 
 export function useReminders() {
-  const [reminders, setReminders, ready] = useLocal<Reminder[]>(KEYS.reminders, seedReminders);
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const key = ["reminders", user?.id];
 
-  const addReminder = (r: Omit<Reminder, "id">) =>
-    setReminders((prev) => [...prev, { ...r, id: crypto.randomUUID() }]);
-  const removeReminder = (id: string) => setReminders((prev) => prev.filter((r) => r.id !== id));
+  const { data, isFetched } = useQuery({
+    queryKey: key,
+    enabled: !!user,
+    queryFn: async (): Promise<Reminder[]> => {
+      const { data, error } = await supabase
+        .from("reminders")
+        .select("id,title,kind,date,note")
+        .order("date", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as Reminder[];
+    },
+  });
 
-  return { reminders, ready, addReminder, removeReminder };
+  const invalidate = () => qc.invalidateQueries({ queryKey: key });
+
+  const add = useMutation({
+    mutationFn: async (r: Omit<Reminder, "id">) => {
+      const { error } = await supabase.from("reminders").insert({ ...r, user_id: user!.id });
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("reminders").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  return {
+    reminders: data ?? [],
+    ready: isFetched,
+    addReminder: (r: Omit<Reminder, "id">) => add.mutate(r),
+    removeReminder: (id: string) => remove.mutate(id),
+  };
+}
+
+export function useProfile() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const key = ["profile", user?.id];
+
+  const { data } = useQuery({
+    queryKey: key,
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id,display_name")
+        .eq("id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const update = useMutation({
+    mutationFn: async (displayName: string) => {
+      const { error } = await supabase
+        .from("profiles")
+        .upsert({ id: user!.id, display_name: displayName });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
+  });
+
+  return {
+    profile: data ?? null,
+    email: user?.email ?? "",
+    setDisplayName: (name: string) => update.mutate(name),
+  };
 }
 
 export function nextOccurrence(dateStr: string) {
@@ -140,14 +314,57 @@ export function toKey(date: Date) {
   return `${date.getFullYear()}-${m}-${d}`;
 }
 
-export const TAGS = [
-  { name: "work", color: "bg-mist" },
-  { name: "home", color: "bg-sage" },
-  { name: "people", color: "bg-blush" },
-  { name: "body", color: "bg-sand" },
-  { name: "mind", color: "bg-clay" },
-] as const;
+/** One-time import of anything the user created before they had an account. */
+export function useLocalImport() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
 
-export function tagColor(name?: string) {
-  return TAGS.find((t) => t.name === name)?.color ?? "bg-secondary";
+  useEffect(() => {
+    if (!user) return;
+    const run = async () => {
+      const rawTasks = window.localStorage.getItem("margin.tasks");
+      const rawReminders = window.localStorage.getItem("margin.reminders");
+      if (!rawTasks && !rawReminders) return;
+      try {
+        if (rawTasks) {
+          const parsed = JSON.parse(rawTasks) as Task[];
+          if (parsed.length) {
+            await supabase.from("tasks").insert(
+              parsed.map((t) => ({
+                user_id: user.id,
+                title: t.title,
+                done: t.done,
+                focus: t.focus,
+                due: t.due ?? null,
+                tag: t.tag ?? null,
+                time: t.time ?? null,
+                note: t.note ?? null,
+              })),
+            );
+          }
+        }
+        if (rawReminders) {
+          const parsed = JSON.parse(rawReminders) as Reminder[];
+          if (parsed.length) {
+            await supabase.from("reminders").insert(
+              parsed.map((r) => ({
+                user_id: user.id,
+                title: r.title,
+                kind: r.kind,
+                date: r.date,
+                note: r.note ?? null,
+              })),
+            );
+          }
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        window.localStorage.removeItem("margin.tasks");
+        window.localStorage.removeItem("margin.reminders");
+        qc.invalidateQueries();
+      }
+    };
+    void run();
+  }, [user, qc]);
 }

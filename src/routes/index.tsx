@@ -9,8 +9,8 @@ import {
   nextOccurrence,
   formatDay,
   greeting,
-  TAGS,
-  tagColor,
+  useTags,
+  tagColorOf,
 } from "@/lib/store";
 
 export const Route = createFileRoute("/")({
@@ -37,6 +37,7 @@ type Panel = "tag" | "date" | "time" | "note" | null;
 function Today() {
   const { tasks, addTask, toggleTask, toggleFocus, removeTask, clearDone } = useTasks();
   const { reminders } = useReminders();
+  const { tags: tagList } = useTags();
   const [draft, setDraft] = useState("");
   const [due, setDue] = useState<string | undefined>();
   const [tag, setTag] = useState<string | undefined>();
@@ -152,7 +153,10 @@ function Today() {
                 className={pill(!!tag || panel === "tag")}
               >
                 {tag ? (
-                  <span className={`size-2 rounded-full ${tagColor(tag)}`} />
+                  <span
+                    className="size-2 rounded-full"
+                    style={{ backgroundColor: tagColorOf(tagList, tag) }}
+                  />
                 ) : (
                   <Hash className="size-3.5" strokeWidth={1.5} />
                 )}
@@ -186,18 +190,23 @@ function Today() {
 
             {panel === "tag" && (
               <div className="mt-3 flex flex-wrap gap-2">
-                {TAGS.map((t) => (
+                {tagList.length === 0 && (
+                  <p className="font-mono text-[11px] text-muted-foreground">
+                    No tags yet — add some in settings.
+                  </p>
+                )}
+                {tagList.map((t) => (
                   <button
-                    key={t.name}
+                    key={t.id}
                     type="button"
                     onClick={() => setTag(tag === t.name ? undefined : t.name)}
                     className={`flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-[11px] transition-all duration-200 ${
                       tag === t.name
-                        ? `${t.color} text-foreground`
-                        : "bg-secondary/60 text-muted-foreground hover:bg-secondary"
+                        ? "bg-secondary text-foreground"
+                        : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
                     }`}
                   >
-                    <span className={`size-2 rounded-full ${t.color}`} />
+                    <span className="size-2 rounded-full" style={{ backgroundColor: t.color }} />
                     {t.name}
                   </button>
                 ))}
@@ -247,7 +256,7 @@ function Today() {
             <button
               onClick={() => toggleTask(t.id)}
               aria-label={`Complete ${t.title}`}
-              className="size-4 shrink-0 rounded-full border border-ring transition-colors hover:bg-sage"
+              className="size-4 shrink-0 rounded-full border border-ring transition-colors hover:bg-secondary"
             />
             <button onClick={() => toggleFocus(t.id)} className="min-w-0 text-left">
               <span className="block truncate text-[15px]">{t.title}</span>
@@ -255,7 +264,10 @@ function Today() {
                 {t.focus && <span>focus</span>}
                 {t.tag && (
                   <span className="flex items-center gap-1 normal-case tracking-normal">
-                    <span className={`size-1.5 rounded-full ${tagColor(t.tag)}`} />
+                    <span
+                      className="size-1.5 rounded-full"
+                      style={{ backgroundColor: tagColorOf(tagList, t.tag) }}
+                    />
                     {t.tag}
                   </span>
                 )}
@@ -309,7 +321,7 @@ function Today() {
                 <button
                   onClick={() => toggleTask(t.id)}
                   aria-label={`Reopen ${t.title}`}
-                  className="size-4 shrink-0 rounded-full bg-sage"
+                  className="size-4 shrink-0 rounded-full bg-muted-foreground/40"
                 />
                 <span className="min-w-0 truncate text-[15px] text-muted-foreground line-through">
                   {t.title}

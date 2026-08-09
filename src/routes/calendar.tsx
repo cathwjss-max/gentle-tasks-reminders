@@ -110,19 +110,19 @@ function CalendarPage() {
                 onClick={() => setSelected(key)}
                 className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-full text-[13px] transition-all duration-300 ease-out ${
                   isSelected
-                    ? "bg-clay text-foreground shadow-[0_6px_16px_-10px_var(--clay)]"
-                    : "text-muted-foreground hover:bg-secondary/70"
+                    ? "bg-foreground text-background shadow-[0_6px_16px_-10px_var(--foreground)]"
+                    : "text-muted-foreground hover:bg-secondary"
                 }`}
               >
                 <span
-                  className={`font-mono ${isToday ? "text-foreground underline underline-offset-4" : ""}`}
+                  className={`font-mono ${isToday && !isSelected ? "text-foreground underline underline-offset-4" : ""}`}
                 >
                   {date.getDate()}
                 </span>
                 <span className="flex h-1.5 items-center gap-0.5">
-                  {items.tasks.length > 0 && <span className="size-1.5 rounded-full bg-sage" />}
-                  {items.birthdays.length > 0 && <span className="size-1.5 rounded-full bg-blush" />}
-                  {items.events.length > 0 && <span className="size-1.5 rounded-full bg-mist" />}
+                  {items.tasks.length > 0 && <span className="size-1.5 rounded-full bg-foreground/70" />}
+                  {items.birthdays.length > 0 && <span className="size-1.5 rounded-full bg-muted-foreground/60" />}
+                  {items.events.length > 0 && <span className="size-1.5 rounded-full bg-muted-foreground/30" />}
                 </span>
               </button>
             );
@@ -145,7 +145,7 @@ function CalendarPage() {
           <ul className="divide-y divide-border">
             {selectedItems.birthdays.map((r) => (
               <li key={r.id} className="flex items-center gap-3 py-3">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blush">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary">
                   <Cake className="size-4" strokeWidth={1.5} />
                 </span>
                 <span className="min-w-0 truncate text-[15px]">{r.title}</span>
@@ -153,7 +153,7 @@ function CalendarPage() {
             ))}
             {selectedItems.events.map((r) => (
               <li key={r.id} className="flex items-center gap-3 py-3">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-mist">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary">
                   <CalendarDays className="size-4" strokeWidth={1.5} />
                 </span>
                 <span className="min-w-0 truncate text-[15px]">{r.title}</span>
@@ -161,7 +161,7 @@ function CalendarPage() {
             ))}
             {selectedItems.tasks.map((t) => (
               <li key={t.id} className="flex items-center gap-3 py-3">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-sage">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary">
                   <CheckCircle2 className="size-4" strokeWidth={1.5} />
                 </span>
                 <span
