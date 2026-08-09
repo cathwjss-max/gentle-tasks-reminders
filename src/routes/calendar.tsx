@@ -115,7 +115,7 @@ function CalendarPage() {
                 }`}
               >
                 <span
-                  className={`font-mono ${isToday ? "text-foreground underline underline-offset-4" : ""}`}
+                  className={`font-mono ${isToday && !isSelected ? "text-foreground underline underline-offset-4" : ""}`}
                 >
                   {date.getDate()}
                 </span>
