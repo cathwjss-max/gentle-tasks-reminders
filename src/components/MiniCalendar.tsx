@@ -55,7 +55,7 @@ export function MiniCalendar({
         {WEEKDAYS.map((d, i) => (
           <span
             key={i}
-            className="pb-1 text-center font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground"
+            className="pb-1 text-center font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground"
           >
             {d}
           </span>
@@ -70,7 +70,7 @@ export function MiniCalendar({
               key={toKey(date)}
               type="button"
               onClick={() => onSelect(toKey(date) === value ? undefined : toKey(date))}
-              className={`flex aspect-square items-center justify-center rounded-full font-mono text-[12px] transition-all duration-200 ${
+              className={`flex aspect-square items-center justify-center rounded-full text-[12px] transition-all duration-200 ${
                 toKey(date) === value
                   ? "bg-foreground text-background"
                   : toKey(date) === toKey(today)

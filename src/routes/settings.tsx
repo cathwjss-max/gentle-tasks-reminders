@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { ChevronDown, LogOut, Monitor, Moon, Plus, Sun, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { PageHeader } from "@/components/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile, useTags, SWATCHES } from "@/lib/store";
 import { useTheme, type ThemeMode } from "@/lib/theme";
@@ -91,17 +92,12 @@ function SettingsPage() {
 
   return (
     <AppShell>
-      <header className="mb-8">
-        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-          Settings
-        </p>
-        <h1 className="mt-2 text-3xl font-medium tracking-[-0.03em]">Your margins</h1>
-      </header>
+      <PageHeader label="Settings" title="Your margins" />
 
       <div className="rounded-3xl border border-border bg-card px-5 py-2 sm:px-6">
         <Section title="You">
           <div className="flex items-center gap-4">
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary font-mono text-lg text-foreground">
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary text-lg text-foreground">
               {initial}
             </span>
             <div className="min-w-0 flex-1">
@@ -113,7 +109,7 @@ function SettingsPage() {
                 aria-label="Your name"
                 className="w-full bg-transparent text-[15px] focus:outline-none"
               />
-              <p className="truncate font-mono text-[11px] text-muted-foreground">{email}</p>
+              <p className="truncate text-[12px] text-muted-foreground">{email}</p>
             </div>
           </div>
         </Section>
@@ -124,7 +120,7 @@ function SettingsPage() {
               <button
                 key={m.value}
                 onClick={() => setMode(m.value)}
-                className={`flex items-center gap-2 rounded-full border px-4 py-2 font-mono text-[12px] transition-colors ${
+                className={`flex items-center gap-2 rounded-full border px-4 py-2 text-[13px] transition-colors ${
                   mode === m.value
                     ? "border-transparent bg-foreground text-background"
                     : "border-border text-muted-foreground hover:bg-secondary"
@@ -155,7 +151,7 @@ function SettingsPage() {
                       if (v && v !== t.name) updateTag(t.id, { name: v });
                     }}
                     aria-label={`Tag name ${t.name}`}
-                    className="min-w-0 flex-1 bg-transparent font-mono text-[13px] focus:outline-none"
+                    className="min-w-0 flex-1 bg-transparent text-[14px] focus:outline-none"
                   />
                   <button
                     onClick={() => removeTag(t.id)}
@@ -203,7 +199,7 @@ function SettingsPage() {
               onChange={(e) => setNewTag(e.target.value)}
               placeholder="New tag"
               aria-label="New tag"
-              className="min-w-0 flex-1 bg-transparent font-mono text-[13px] placeholder:text-muted-foreground focus:outline-none"
+              className="min-w-0 flex-1 bg-transparent text-[14px] placeholder:text-muted-foreground focus:outline-none"
             />
             <span className="flex shrink-0 gap-1.5">
               {SWATCHES.map((s) => (
@@ -225,7 +221,7 @@ function SettingsPage() {
         <Section title="Account" collapsible>
           <button
             onClick={signOut}
-            className="flex items-center gap-2 rounded-full border border-border px-4 py-2 font-mono text-[12px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="flex items-center gap-2 rounded-full border border-border px-4 py-2 text-[13px] text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
             <LogOut className="size-3.5" strokeWidth={1.5} />
             Log out
