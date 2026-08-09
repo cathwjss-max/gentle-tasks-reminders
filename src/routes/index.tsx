@@ -106,10 +106,12 @@ function Today() {
             />
             <button onClick={() => toggleFocus(t.id)} className="min-w-0 text-left">
               <span className="block truncate text-[15px]">{t.title}</span>
-              <span className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                {t.focus && <span>focus</span>}
+              <span className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                {t.focus && (
+                  <span className="font-mono uppercase tracking-[0.16em] text-[10px]">focus</span>
+                )}
                 {t.tag && (
-                  <span className="flex items-center gap-1 normal-case tracking-normal">
+                  <span className="flex items-center gap-1">
                     <span
                       className="size-1.5 rounded-full"
                       style={{ backgroundColor: tagColorOf(tagList, t.tag) }}
@@ -117,11 +119,9 @@ function Today() {
                     {t.tag}
                   </span>
                 )}
-                {t.due && (
-                  <span className="normal-case tracking-normal">{formatDay(new Date(t.due))}</span>
-                )}
-                {t.time && <span className="normal-case tracking-normal">{t.time}</span>}
-                {t.note && <span className="normal-case tracking-normal">note</span>}
+                {t.due && <span>{formatDay(new Date(t.due))}</span>}
+                {t.time && <span>{t.time}</span>}
+                {t.note && <span>note</span>}
               </span>
             </button>
             <div className="flex shrink-0 items-center gap-1">
@@ -156,7 +156,7 @@ function Today() {
             </h2>
             <button
               onClick={clearDone}
-              className="font-mono text-[11px] text-muted-foreground underline-offset-4 hover:underline"
+              className="text-[12px] text-muted-foreground underline-offset-4 hover:underline"
             >
               clear
             </button>
@@ -184,12 +184,12 @@ function Today() {
             Coming up
           </h2>
           <ul className="space-y-2">
-            {soon.map(({ r, next, days }) => (
+            {soon.map(({ r, next, days, age }) => (
               <li key={r.id} className="flex items-center justify-between gap-4">
                 <span className="min-w-0 truncate text-[15px]">
                   {r.title}
                   <span className="ml-2 text-muted-foreground">
-                    {r.kind === "birthday" ? "birthday" : "event"}
+                    {r.kind === "birthday" ? (age ? `turns ${age}` : "birthday") : "event"}
                   </span>
                 </span>
                 <span className="shrink-0 font-mono text-[12px] text-muted-foreground">
