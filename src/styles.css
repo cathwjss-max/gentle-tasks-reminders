@@ -6,7 +6,7 @@
 
 @theme {
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "DM Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-mono: "Inconsolata", ui-monospace, SFMono-Regular, monospace;
   --color-clay: var(--clay);
   --color-sage: var(--sage);
   --color-mist: var(--mist);
