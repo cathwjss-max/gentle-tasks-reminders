@@ -89,7 +89,7 @@ function CalendarPage() {
         }
       />
 
-      <div className="rounded-3xl border border-border bg-card p-4 sm:p-5">
+      <div className="px-1 sm:px-2">
         <div className="grid grid-cols-7">
           {WEEKDAYS.map((d, i) => (
             <span
