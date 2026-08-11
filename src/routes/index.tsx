@@ -4,6 +4,7 @@ import { Star, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Composer } from "@/components/Composer";
 import { PageHeader } from "@/components/PageHeader";
+import { TaskEditor } from "@/components/TaskEditor";
 import {
   useTasks,
   useReminders,
@@ -39,9 +40,12 @@ function Today() {
   const { tags: tagList } = useTags();
 
   const [hello, setHello] = useState("Hello");
+  const [editing, setEditing] = useState<string | null>(null);
   useEffect(() => setHello(greeting()), []);
 
-  const open = tasks.filter((t) => !t.done);
+  const open = tasks
+    .filter((t) => !t.done)
+    .sort((a, b) => Number(b.focus) - Number(a.focus));
   const done = tasks.filter((t) => t.done);
   const progress = tasks.length === 0 ? 0 : Math.round((done.length / tasks.length) * 100);
   const complete = tasks.length > 0 && open.length === 0;
@@ -94,7 +98,12 @@ function Today() {
       </div>
 
       <ul className="space-y-1">
-        {open.map((t) => (
+        {open.map((t) =>
+          editing === t.id ? (
+            <li key={t.id} className="py-1">
+              <TaskEditor task={t} onClose={() => setEditing(null)} />
+            </li>
+          ) : (
           <li
             key={t.id}
             className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl px-2 py-3 transition-colors hover:bg-secondary/60"
@@ -104,12 +113,9 @@ function Today() {
               aria-label={`Complete ${t.title}`}
               className="size-4 shrink-0 rounded-full border border-ring transition-colors hover:bg-secondary"
             />
-            <button onClick={() => toggleFocus(t.id)} className="min-w-0 text-left">
+            <button onClick={() => setEditing(t.id)} className="min-w-0 text-left">
               <span className="block truncate text-[15px]">{t.title}</span>
               <span className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                {t.focus && (
-                  <span className="font-mono uppercase tracking-[0.16em] text-[10px]">focus</span>
-                )}
                 {t.tag && (
                   <span className="flex items-center gap-1">
                     <span
@@ -127,8 +133,10 @@ function Today() {
             <div className="flex shrink-0 items-center gap-1">
               <button
                 onClick={() => toggleFocus(t.id)}
-                aria-label="Mark as focus"
-                className="rounded-md p-1.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
+                aria-label={t.focus ? "Unpin task" : "Pin task"}
+                className={`rounded-md p-1.5 text-muted-foreground transition-opacity group-hover:opacity-100 focus:opacity-100 ${
+                  t.focus ? "opacity-100" : "opacity-0"
+                }`}
               >
                 <Star
                   className="size-4"
@@ -145,7 +153,8 @@ function Today() {
               </button>
             </div>
           </li>
-        ))}
+          ),
+        )}
       </ul>
 
       {done.length > 0 && (
