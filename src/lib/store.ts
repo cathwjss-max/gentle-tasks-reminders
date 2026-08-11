@@ -154,7 +154,18 @@ export function useTasks() {
   });
 
   const patch = useMutation({
-    mutationFn: async (p: { id: string; values: { done?: boolean; focus?: boolean } }) => {
+    mutationFn: async (p: {
+      id: string;
+      values: {
+        done?: boolean;
+        focus?: boolean;
+        title?: string;
+        due?: string | null;
+        tag?: string | null;
+        time?: string | null;
+        note?: string | null;
+      };
+    }) => {
       const { error } = await supabase.from("tasks").update(p.values).eq("id", p.id);
       if (error) throw error;
     },
@@ -199,6 +210,16 @@ export function useTasks() {
       const t = tasks.find((x) => x.id === id);
       patch.mutate({ id, values: { focus: !t?.focus } });
     },
+    updateTask: (
+      id: string,
+      values: {
+        title?: string;
+        due?: string | null;
+        tag?: string | null;
+        time?: string | null;
+        note?: string | null;
+      },
+    ) => patch.mutate({ id, values }),
     removeTask: (id: string) => remove.mutate(id),
     clearDone: () => clear.mutate(),
   };
